@@ -10,11 +10,11 @@ provider "github" {
 }
 
 module "repo" {
-  source  = "app.terraform.io/Darnold-Hashicorp/repository/github"
-  version = "1.0.0"
-  description = "${var.description}"
-  name = "${var.repo}"
-  private = "${var.private}"
+  source             = "git@github.com:HappyPathway/terraform-github-repository.git"
+  version            = "1.0.0"
+  description        = "${var.description}"
+  name               = "${var.repo}"
+  private            = "${var.private}"
   gitignore_template = "Terraform"
 }
 
