@@ -2,12 +2,18 @@
 
 private_repo='false'
 commit_message='initial add'
-release='false'
+release='1.0.0'
 tf_workspace='false'
 gh_description=''
 
 print_usage() { 
   printf "Usage: Creates new Github repo in ${PWD}" 
+  printf "${0} [options]"
+  printf "-p <flag:sets private repo>"
+  printf "-m <arg:commit message>"
+  printf "-r <arg:sets release version>"
+  printf "-t <flag:creates tfe workspace>"
+  printf "-d <arg:github repo description>"
 }
 
 while getopts 'pm:r:td:' flag; do
@@ -17,6 +23,8 @@ while getopts 'pm:r:td:' flag; do
     r) release="${OPTARG}" ;;
     t) tf_workspace='true' ;;
     d) gh_description="${OPTARG}" ;;
+    h) print_usage
+       exit 0 ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -25,11 +33,11 @@ done
 
 REPO=$(pwd| awk -F/ '{ print $NF }')
 cd $(dirname ${0})
+terraform workspace new ${REPO}
 terraform init
 terraform apply -auto-approve -var repo=${REPO} -var description="${gh_description}" -var private=${private_repo}
 output=$(terraform output)
-mkdir ~/repo_init/${REPO}
-mv ~/repo_init/terraform.tfstate* ~/repo_init/${REPO}
+terraform workspace select default
 cd -
 rm .gitignore LICENSE README.md || echo
 git init
@@ -41,9 +49,9 @@ git push -u origin master
 
 echo ${output}
 
-if [ ${release} != 'false ]
+if [ ! -z "${1}" ]
 then
-  git tag -a ${release} -m "${commit_message}"
+  git tag -a ${release} -m "${2}"
   git push -u origin ${release}
 fi
  
