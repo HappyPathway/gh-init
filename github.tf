@@ -24,5 +24,5 @@ resource "github_repository" "repo" {
 }
 
 output "git_clone_url" {
-  value = "${module.repo.git_clone_url}"
+  value = "${github_repository.repog.git_clone_url}"
 }
