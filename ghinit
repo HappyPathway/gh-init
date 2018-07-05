@@ -7,8 +7,9 @@ tf_workspace='false'
 gh_description=''
 github_repo='false'
 clean_up='false'
+pushvars='false'
 
-print_usage() { 
+function print_usage { 
   printf "Usage: Creates new Github repo in ${PWD}" 
   printf "${0} [options]"
   printf "-p <flag:sets private repo>"
@@ -18,28 +19,7 @@ print_usage() {
   printf "-d <arg:github repo description>"
 }
 
-while getopts 'pm:r:td:cgh' flag; do
-  case "${flag}" in
-    p) private_repo='true' ;;
-    m) commit_message="${OPTARG}" ;;
-    r) release="${OPTARG}" ;;
-    t) tf_workspace='true' ;;
-    d) gh_description="${OPTARG}" ;;
-    c) clean_up='true' ;;
-    g) github_repo='true' ;;
-    h) print_usage
-       exit 0 ;;
-    *) print_usage
-       exit 1 ;;
-  esac
-done
-
-
-REPO=$(pwd| awk -F/ '{ print $NF }')
-
-# github repo is a flag, if its set it will be true
-if [ ${github_repo} == 'true' ]
-then
+function set_repo {
   cd $(dirname ${0})
   terraform workspace new ${REPO}
   terraform init
@@ -54,12 +34,10 @@ then
   git add .
   git commit -m "${commit_message}"
   git push -u origin master
-
   echo ${output}
-fi
+}
 
-if [ ${clean_up} == 'true' ]
-then
+function cleanup_repo {
   cd $(dirname ${0})
   terraform workspace select ${REPO}
   terraform init
@@ -67,19 +45,66 @@ then
   terraform workspace select default
   terraform workspace delete ${REPO}
   tfe workspace delete -tfe-workspace ${REPO}
+}
+
+function push_release {
+  git tag -a ${release} -m "${commit_message}"
+  git push -u origin ${release}
+}
+
+function tfe_workspace {
+  tfe workspace new -tfe-workspace ${REPO} -vcs-id ${TF_VAR_github_organization}/${REPO}
+  tfe pushconfig -tfe-workspace ${REPO}
+}
+
+function tfe_pushvars {
+  tfe pushvars -tfe-workspace ${REPO}
+}
+
+while getopts 'pm:r:td:cghv' flag; do
+  case "${flag}" in
+    p) export private_repo='true' ;;
+    m) export commit_message="${OPTARG}" ;;
+    r) export release="${OPTARG}" ;;
+    t) export tf_workspace='true' ;;
+    d) export gh_description="${OPTARG}" ;;
+    c) export clean_up='true' ;;
+    g) export github_repo='true' ;;
+    v) export pushvars='true' ;;
+    h) print_usage
+       exit 0 ;;
+    *) print_usage
+       exit 1 ;;
+  esac
+done
+
+
+REPO=$(pwd| awk -F/ '{ print $NF }')
+
+# github repo is a flag, if its set it will be true
+if [ ${github_repo} == 'true' ]
+then
+  setup_repo;
 fi
 
+if [ ${clean_up} == 'true' ]
+then
+  cleanup_repo;
+fi
 
 # release is an arugment, if its set it can be anything other than false. 
 if [ ${release} != 'false' ]
 then
-  git tag -a ${release} -m "${2}"
-  git push -u origin ${release}
+  push_release;
 fi
 
 # tf_workspace is a flag, if it's set it wil be true
 if [ ${tf_workspace} == 'true' ]
 then
-  tfe workspace new -tfe-workspace ${REPO} -vcs-id ${TF_VAR_github_organization}/${REPO}
-  tfe pushconfig -tfe-workspace ${REPO}
+  tfe_workspace;
+fi
+
+if [ ${pushvars} == 'true' ]
+then
+  tfe_pushvars;
 fi

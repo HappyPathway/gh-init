@@ -4,16 +4,21 @@ variable "repo" {}
 variable "description" {}
 variable "private" {}
 
+variable "enable" {
+  default     = "false"
+  type        = "string"
+  description = "Only enable if using a Github repo"
+}
+
 provider "github" {
   token        = "${var.github_token}"
   organization = "${var.github_organization}"
 }
 
-module "repo" {
-  source             = "git@github.com:HappyPathway/terraform-github-repository.git"
-  version            = "1.0.0"
-  description        = "${var.description}"
+resource "github_repository" "repo" {
+  count              = "${var.enable == "true" ? 1 : 0}"
   name               = "${var.repo}"
+  description        = "${var.description}"
   private            = "${var.private}"
   gitignore_template = "Terraform"
 }
