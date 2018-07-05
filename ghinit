@@ -19,11 +19,11 @@ function print_usage {
   printf "-d <arg:github repo description>"
 }
 
-function set_repo {
+function set_github_repo {
   cd $(dirname ${0})
   terraform workspace new ${REPO}
   terraform init
-  terraform apply -auto-approve -var repo=${REPO} -var description="${gh_description}" -var private=${private_repo}
+  terraform apply -auto-approve -var repo=${REPO} -var description="${gh_description}" -var private=${private_repo} -var=enable_github=true
   output=$(terraform output)
   terraform workspace select default
   cd -
@@ -84,7 +84,7 @@ REPO=$(pwd| awk -F/ '{ print $NF }')
 # github repo is a flag, if its set it will be true
 if [ ${github_repo} == 'true' ]
 then
-  setup_repo;
+  setup_github_repo;
 fi
 
 if [ ${clean_up} == 'true' ]

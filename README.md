@@ -1,2 +1,2 @@
-# trash-talk
-This is a very simple TFE Workspace Repository
+# TFE Init
+Quickly setup a TFE Workspace and/or Code Repository

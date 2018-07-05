@@ -4,7 +4,7 @@ variable "repo" {}
 variable "description" {}
 variable "private" {}
 
-variable "enable" {
+variable "enable_github" {
   default     = "false"
   type        = "string"
   description = "Only enable if using a Github repo"
@@ -16,7 +16,7 @@ provider "github" {
 }
 
 resource "github_repository" "repo" {
-  count              = "${var.enable == "true" ? 1 : 0}"
+  count              = "${var.enable_github == "true" ? 1 : 0}"
   name               = "${var.repo}"
   description        = "${var.description}"
   private            = "${var.private}"
