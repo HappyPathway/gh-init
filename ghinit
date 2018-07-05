@@ -2,7 +2,7 @@
 
 private_repo='false'
 commit_message='initial add'
-release='1.0.0'
+release='false'
 tf_workspace='false'
 gh_description=''
 
@@ -41,9 +41,9 @@ git push -u origin master
 
 echo ${output}
 
-if [ ! -z "${1}" ]
+if [ ${release} != 'false ]
 then
-  git tag -a ${release} -m "${2}"
+  git tag -a ${release} -m "${commit_message}"
   git push -u origin ${release}
 fi
  
