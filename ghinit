@@ -41,7 +41,7 @@ function cleanup_repo {
   cd $(dirname ${0})
   terraform workspace select ${REPO}
   terraform init
-  terraform destroy -auto-approve -var repo=${REPO} -var description="${gh_description}" -var private=${private_repo}
+  terraform destroy -force -var repo=${REPO} -var description="${gh_description}" -var private=${private_repo}
   terraform workspace select default
   terraform workspace delete ${REPO}
   tfe workspace delete -tfe-workspace ${REPO}
