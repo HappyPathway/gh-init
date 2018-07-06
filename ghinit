@@ -4,10 +4,20 @@ private_repo='false'
 commit_message='initial add'
 release='false'
 tf_workspace='false'
+tf_module='false'
 gh_description=''
 github_repo='false'
 clean_up='false'
 pushvars='false'
+
+function upload_module {
+  curl \
+  --header "Authorization: Bearer $ATLAS_TOKEN" \
+  --header "Content-Type: application/vnd.api+json" \
+  --request POST \
+  --data @payload.json \
+  https://app.terraform.io/api/v2/registry-modules
+}
 
 function print_usage { 
   printf "Usage: Creates new Github repo in ${PWD}" 
@@ -19,7 +29,7 @@ function print_usage {
   printf "-d <arg:github repo description>"
 }
 
-function set_github_repo {
+function setup_github_repo {
   cd $(dirname ${0})
   terraform workspace new ${REPO}
   terraform init
@@ -57,16 +67,24 @@ function tfe_workspace {
   tfe pushconfig -tfe-workspace ${REPO}
 }
 
+function tfe_module {
+  git clone git@github.com:HappyPathway/terraform-enterprise-private-module.git
+  cd terraform-enterprise-private-module;
+  terraform apply -var repo=${REPO} -var repo_user=${REPO_USER} -auto-approve || echo
+  cd -
+}
+
 function tfe_pushvars {
   tfe pushvars -tfe-workspace ${REPO}
 }
 
-while getopts 'pm:r:td:cghv' flag; do
+while getopts 'pm:r:wd:cghv' flag; do
   case "${flag}" in
     p) export private_repo='true' ;;
     m) export commit_message="${OPTARG}" ;;
     r) export release="${OPTARG}" ;;
-    t) export tf_workspace='true' ;;
+    w) export tf_workspace='true' ;;
+    t) export tf_module='true' ;;
     d) export gh_description="${OPTARG}" ;;
     c) export clean_up='true' ;;
     g) export github_repo='true' ;;
@@ -102,6 +120,11 @@ fi
 if [ ${tf_workspace} == 'true' ]
 then
   tfe_workspace;
+fi
+
+if [ ${tf_module} == 'true' ]
+then
+  tfe_module;
 fi
 
 if [ ${pushvars} == 'true' ]
