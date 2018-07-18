@@ -70,6 +70,7 @@ function tfe_workspace {
 function tfe_module {
   git clone git@github.com:HappyPathway/terraform-enterprise-private-module.git
   cd terraform-enterprise-private-module;
+  terraform init;
   terraform apply -var repo=${REPO} -var repo_user=${REPO_USER} -auto-approve || echo
   cd -
 }
@@ -78,7 +79,7 @@ function tfe_pushvars {
   tfe pushvars -tfe-workspace ${REPO}
 }
 
-while getopts 'pm:r:wd:cghv' flag; do
+while getopts 'pm:r:wd:cghvt' flag; do
   case "${flag}" in
     p) export private_repo='true' ;;
     m) export commit_message="${OPTARG}" ;;
